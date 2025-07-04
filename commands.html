@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Legal AI Commands</title>
+    
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+</head>
+<body>
+    <script>
+        // Initialize Office
+        Office.onReady(() => {
+            // Commands are ready
+        });
+
+        // Quick Analyze function called from ribbon
+        function quickAnalyze(event) {
+            // Get current email data
+            Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (result) => {
+                if (result.status === Office.AsyncResultStatus.Succeeded) {
+                    const emailData = {
+                        subject: Office.context.mailbox.item.subject,
+                        from: Office.context.mailbox.item.from ? Office.context.mailbox.item.from.emailAddress : 'Unknown',
+                        body: result.value
+                    };
+
+                    // Perform quick analysis
+                    const analysis = performQuickAnalysis(emailData);
+                    
+                    // Show notification with results
+                    Office.context.mailbox.item.notificationMessages.addAsync('quickAnalysis', {
+                        type: 'informationalMessage',
+                        message: `Legal Analysis: ${analysis.practiceArea} | Priority: ${analysis.priority} | ${analysis.urgency}`,
+                        icon: 'icon1',
+                        persistent: false
+                    });
+                }
+                
+                event.completed();
+            });
+        }
+
+        // Generate Response function called from ribbon
+        function generateResponse(event) {
+            // Get current email data
+            Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (result) => {
+                if (result.status === Office.AsyncResultStatus.Succeeded) {
+                    const emailData = {
+                        subject: Office.context.mailbox.item.subject,
+                        from: Office.context.mailbox.item.from ? Office.context.mailbox.item.from.emailAddress : 'Unknown',
+                        body: result.value
+                    };
+
+                    // Generate quick response
+                    const response = generateQuickLegalResponse(emailData);
+                    
+                    // Show response in notification (in real implementation, this would open compose window)
+                    Office.context.mailbox.item.notificationMessages.addAsync('responseGenerated', {
+                        type: 'informationalMessage',
+                        message: 'Legal response generated. Open AI Assistant panel to view and insert.',
+                        icon: 'icon1',
+                        persistent: true
+                    });
+
+                    // Store response for taskpane to access
+                    sessionStorage.setItem('generatedResponse', response);
+                }
+                
+                event.completed();
+            });
+        }
+
+        // Insert Template function called from ribbon
+        function insertTemplate(event) {
+            // In compose mode, insert a basic legal template
+            if (Office.context.mailbox.item.itemType === Office.MailboxEnums.ItemType.Message) {
+                const template = `Dear [Client],
+
+Thank you for your email regarding [matter].
+
+I will review the details and provide a response within [timeframe].
+
+Please note that this communication is subject to attorney-client privilege.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]
+
+---
+CONFIDENTIALITY NOTICE: This email and any attachments contain confidential and privileged information.`;
+
+                Office.context.mailbox.item.body.setAsync(
+                    template,
+                    { coercionType: Office.CoercionType.Text },
+                    (result) => {
+                        if (result.status === Office.AsyncResultStatus.Succeeded) {
+                            Office.context.mailbox.item.notificationMessages.addAsync('templateInserted', {
+                                type: 'informationalMessage',
+                                message: 'Legal template inserted successfully',
+                                icon: 'icon1',
+                                persistent: false
+                            });
+                        }
+                    }
+                );
+            }
+            
+            event.completed();
+        }
+
+        function performQuickAnalysis(emailData) {
+            const text = emailData.subject + ' ' + emailData.body;
+            const lowerText = text.toLowerCase();
+
+            // Determine practice area
+            let practiceArea = 'General Legal';
+            const areas = {
+                'Corporate Law': ['corporation', 'llc', 'entity', 'governance', 'board', 'merger', 'acquisition'],
+                'Contract Law': ['contract', 'agreement', 'terms', 'license', 'vendor', 'sla'],
+                'Privacy & Data': ['privacy', 'gdpr', 'data protection', 'personal information', 'breach', 'ccpa'],
+                'Compliance': ['compliance', 'audit', 'regulation', 'sox', 'sec', 'filing'],
+                'Employment Law': ['employee', 'hr', 'handbook', 'discrimination', 'termination'],
+                'IP & Technology': ['patent', 'trademark', 'copyright', 'ip', 'technology', 'software']
+            };
+
+            for (const [area, keywords] of Object.entries(areas)) {
+                if (keywords.some(keyword => lowerText.includes(keyword))) {
+                    practiceArea = area;
+                    break;
+                }
+            }
+
+            // Determine priority
+            let priority = 'Low';
+            if (['urgent', 'asap', 'immediate', 'emergency', 'critical'].some(keyword => lowerText.includes(keyword))) {
+                priority = 'High';
+            } else if (['deadline', 'due date', 'important', 'review needed'].some(keyword => lowerText.includes(keyword))) {
+                priority = 'Medium';
+            }
+
+            // Determine urgency
+            let urgency = 'Standard timeline';
+            if (lowerText.includes('urgent') || lowerText.includes('asap') || lowerText.includes('immediate')) {
+                urgency = 'Immediate attention required';
+            } else if (lowerText.includes('deadline') || lowerText.includes('due')) {
+                urgency = 'Time-sensitive matter';
+            }
+
+            return { practiceArea, priority, urgency };
+        }
+
+        function generateQuickLegalResponse(emailData) {
+            const isUrgent = emailData.subject.toLowerCase().includes('urgent') || 
+                           emailData.body.toLowerCase().includes('urgent') ||
+                           emailData.body.toLowerCase().includes('asap');
+
+            const analysis = performQuickAnalysis(emailData);
+
+            if (isUrgent) {
+                return `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your urgent communication regarding ${emailData.subject}.
+
+I understand the time-sensitive nature of this issue and will prioritize it accordingly. Based on my initial review, this appears to involve ${analysis.practiceArea.toLowerCase()} considerations that require immediate attention.
+
+I will provide you with:
+• An initial assessment within 2 hours
+• A comprehensive analysis by end of business today
+• Recommended immediate action steps
+
+Please do not hesitate to call me directly if you need to discuss any aspect of this matter before my written response.
+
+IMPORTANT: This communication is subject to attorney-client privilege and should be treated as confidential.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]
+
+---
+CONFIDENTIALITY NOTICE: This email and any attachments contain confidential and privileged information.`;
+            } else {
+                return `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your email regarding ${emailData.subject}.
+
+I will review the details you've provided and conduct a thorough analysis of the ${analysis.practiceArea.toLowerCase()} issues involved.
+
+My review will include:
+• Analysis of the legal implications and potential risks
+• Research of applicable laws and regulations  
+• Recommended course of action and next steps
+• Timeline for implementation
+
+Expected delivery: 3-5 business days
+
+I will contact you immediately if I identify any issues requiring urgent attention. Please feel free to reach out if you have any questions or additional information to provide.
+
+This communication is subject to attorney-client privilege.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]
+
+---
+CONFIDENTIALITY NOTICE: This email and any attachments contain confidential and privileged information.`;
+            }
+        }
+
+        // Make functions available globally for Office
+        window.quickAnalyze = quickAnalyze;
+        window.generateResponse = generateResponse;
+        window.insertTemplate = insertTemplate;
+    </script>
+</body>
+</html>
