@@ -12,9 +12,9 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Legal AI Assistant"/>
   <Description DefaultValue="AI-powered email assistant for legal professionals"/>
-  <IconUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin/assets/icon-128.png"/>
-  <SupportUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin/support"/>
+  <IconUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin-/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin-/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://JGBAustin.github.io/legal-email-addin-/support"/>
 
   <!-- Hosts -->
   <Hosts>
@@ -32,7 +32,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://JGBAustin.github.io/legal-email-addin/taskpane.html"/>
+        <SourceLocation DefaultValue="https://JGBAustin.github.io/legal-email-addin-/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -158,13 +158,13 @@
     <!-- Resources -->
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://JGBAustin.github.io/legal-email-addin/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://JGBAustin.github.io/legal-email-addin/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://JGBAustin.github.io/legal-email-addin/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://JGBAustin.github.io/legal-email-addin-/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://JGBAustin.github.io/legal-email-addin-/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://JGBAustin.github.io/legal-email-addin-/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://JGBAustin.github.io/legal-email-addin/commands.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://JGBAustin.github.io/legal-email-addin/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://JGBAustin.github.io/legal-email-addin-/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://JGBAustin.github.io/legal-email-addin-/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Legal AI"/>
