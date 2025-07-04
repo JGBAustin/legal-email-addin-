@@ -1,1 +1,1 @@
-# bl-email-addin-
+# legal-email-addin-
