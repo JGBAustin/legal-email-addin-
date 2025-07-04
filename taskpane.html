@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Legal AI Assistant</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #faf9f8;
+            color: #323130;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 16px;
+            margin: -16px -16px 16px -16px;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border: 1px solid #edebe9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #323130;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            background: #0078d4;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 4px 4px 4px 0;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #106ebe;
+        }
+
+        .btn:disabled {
+            background: #a19f9d;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #605e5c;
+        }
+
+        .btn-secondary:hover {
+            background: #484644;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #0078d4;
+            border: 1px solid #0078d4;
+        }
+
+        .btn-outline:hover {
+            background: #0078d4;
+            color: white;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-info {
+            background: #deecf9;
+            color: #004578;
+            border-left: 4px solid #0078d4;
+        }
+
+        .status-success {
+            background: #dff6dd;
+            color: #107c10;
+            border-left: 4px solid #107c10;
+        }
+
+        .status-warning {
+            background: #fff4ce;
+            color: #797673;
+            border-left: 4px solid #ffb900;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .analysis-item {
+            background: #f3f2f1;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #0078d4;
+        }
+
+        .analysis-label {
+            font-size: 11px;
+            color: #605e5c;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .analysis-value {
+            font-size: 13px;
+            color: #323130;
+            font-weight: 500;
+        }
+
+        .priority-high {
+            border-left-color: #d13438 !important;
+        }
+
+        .priority-medium {
+            border-left-color: #ffb900 !important;
+        }
+
+        .priority-low {
+            border-left-color: #107c10 !important;
+        }
+
+        .response-area {
+            background: #f8f8f8;
+            border: 1px solid #c8c6c4;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            min-height: 120px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #605e5c;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 2px solid #f3f2f1;
+            border-top: 2px solid #0078d4;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0;
+        }
+
+        .task-item {
+            background: #f3f2f1;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            border-left: 3px solid #0078d4;
+            font-size: 13px;
+        }
+
+        .compliance-alerts {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        .compliance-alerts h4 {
+            margin: 0 0 8px 0;
+            color: #d13438;
+            font-size: 14px;
+        }
+
+        .compliance-alerts ul {
+            margin: 0;
+            padding-left: 16px;
+            color: #991b1b;
+            font-size: 12px;
+        }
+
+        .template-selector {
+            margin: 8px 0;
+        }
+
+        .template-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #c8c6c4;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .input-group {
+            margin: 8px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #323130;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid #c8c6c4;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 1px #0078d4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Legal AI Assistant</h1>
+        <p>AI-powered email analysis for legal professionals</p>
+    </div>
+
+    <!-- Status Section -->
+    <div class="section">
+        <div id="status-display" class="status status-info">
+            Ready to analyze emails
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="section">
+        <h3>
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Quick Actions
+        </h3>
+        <button class="btn" onclick="analyzeCurrentEmail()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M9 11H7v9c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1z"/>
+                <path d="M13 7h-2c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1z"/>
+            </svg>
+            Analyze Email
+        </button>
+        <button class="btn btn-secondary" onclick="generateResponse()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z"/>
+            </svg>
+            Generate Response
+        </button>
+        <button class="btn btn-outline" onclick="extractTasks()">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            Extract Tasks
+        </button>
+    </div>
+
+    <!-- Analysis Results Section -->
+    <div class="section" id="analysis-section" style="display: none;">
+        <h3>
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M9 11H7v9c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1z"/>
+                <path d="M13 7h-2c-.55 0-1 .45-1 1v12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V8c0-.55-.45-1-1-1z"/>
+                <path d="M17 3h-2c-.55 0-1 .45-1 1v16c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1z"/>
+            </svg>
+            Analysis Results
+        </h3>
+        <div class="analysis-grid" id="analysis-grid">
+            <!-- Analysis results will be populated here -->
+        </div>
+        <div id="compliance-alerts-container"></div>
+    </div>
+
+    <!-- Response Generator Section -->
+    <div class="section" id="response-section">
+        <h3>
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z"/>
+            </svg>
+            Response Generator
+        </h3>
+        
+        <div class="template-selector">
+            <select id="response-template">
+                <option value="standard">Standard Response</option>
+                <option value="urgent">Urgent Matter Response</option>
+                <option value="contract">Contract Review Response</option>
+                <option value="compliance">Compliance Matter Response</option>
+                <option value="confidential">Confidential Matter Response</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="custom-instructions">Custom Instructions:</label>
+            <textarea id="custom-instructions" placeholder="Add specific instructions for the AI response..."></textarea>
+        </div>
+
+        <button class="btn" onclick="generateDetailedResponse()">
+            Generate Detailed Response
+        </button>
+
+        <div id="generated-response" class="response-area" style="display: none;"></div>
+        
+        <div id="response-actions" style="display: none;">
+            <button class="btn" onclick="insertResponse()">Insert into Email</button>
+            <button class="btn btn-outline" onclick="copyResponse()">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="section" id="tasks-section" style="display: none;">
+        <h3>
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            Extracted Tasks
+        </h3>
+        <ul class="task-list" id="task-list">
+            <!-- Tasks will be populated here -->
+        </ul>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Processing with AI...
+    </div>
+
+    <script>
+        let currentEmailData = null;
+        let generatedResponseText = '';
+
+        // Initialize Office Add-in
+        Office.onReady((info) => {
+            if (info.host === Office.HostType.Outlook) {
+                updateStatus('Add-in loaded successfully', 'success');
+            }
+        });
+
+        function updateStatus(message, type = 'info') {
+            const statusDisplay = document.getElementById('status-display');
+            statusDisplay.textContent = message;
+            statusDisplay.className = `status status-${type}`;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        async function analyzeCurrentEmail() {
+            showLoading();
+            updateStatus('Analyzing current email...', 'info');
+
+            try {
+                // Get current email data
+                await getCurrentEmailData();
+                
+                if (!currentEmailData) {
+                    updateStatus('No email selected', 'warning');
+                    return;
+                }
+
+                // Simulate AI analysis (replace with actual AI service call)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const analysis = {
+                    practiceArea: determinePracticeArea(currentEmailData.subject + ' ' + currentEmailData.body),
+                    priority: determinePriority(currentEmailData.subject + ' ' + currentEmailData.body),
+                    urgency: determineUrgency(currentEmailData.subject + ' ' + currentEmailData.body),
+                    complianceFlags: checkCompliance(currentEmailData.subject + ' ' + currentEmailData.body)
+                };
+
+                displayAnalysis(analysis);
+                updateStatus('Email analysis complete', 'success');
+            } catch (error) {
+                updateStatus('Error analyzing email: ' + error.message, 'warning');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function getCurrentEmailData() {
+            return new Promise((resolve) => {
+                Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (result) => {
+                    if (result.status === Office.AsyncResultStatus.Succeeded) {
+                        currentEmailData = {
+                            subject: Office.context.mailbox.item.subject,
+                            from: Office.context.mailbox.item.from ? Office.context.mailbox.item.from.emailAddress : 'Unknown',
+                            body: result.value,
+                            timestamp: new Date()
+                        };
+                        resolve(currentEmailData);
+                    } else {
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        function determinePracticeArea(text) {
+            const lowerText = text.toLowerCase();
+            const areas = {
+                'Corporate Law': ['corporation', 'llc', 'entity', 'governance', 'board', 'merger', 'acquisition'],
+                'Contract Law': ['contract', 'agreement', 'terms', 'license', 'vendor', 'sla'],
+                'Privacy & Data': ['privacy', 'gdpr', 'data protection', 'personal information', 'breach', 'ccpa'],
+                'Compliance': ['compliance', 'audit', 'regulation', 'sox', 'sec', 'filing'],
+                'Employment Law': ['employee', 'hr', 'handbook', 'discrimination', 'termination'],
+                'IP & Technology': ['patent', 'trademark', 'copyright', 'ip', 'technology', 'software']
+            };
+
+            for (const [area, keywords] of Object.entries(areas)) {
+                if (keywords.some(keyword => lowerText.includes(keyword))) {
+                    return area;
+                }
+            }
+            return 'General Legal';
+        }
+
+        function determinePriority(text) {
+            const lowerText = text.toLowerCase();
+            if (['urgent', 'asap', 'immediate', 'emergency', 'critical'].some(keyword => lowerText.includes(keyword))) {
+                return 'High';
+            } else if (['deadline', 'due date', 'important', 'review needed'].some(keyword => lowerText.includes(keyword))) {
+                return 'Medium';
+            }
+            return 'Low';
+        }
+
+        function determineUrgency(text) {
+            const lowerText = text.toLowerCase();
+            if (lowerText.includes('urgent') || lowerText.includes('asap') || lowerText.includes('immediate')) {
+                return 'Immediate attention required';
+            } else if (lowerText.includes('deadline') || lowerText.includes('due')) {
+                return 'Time-sensitive matter';
+            }
+            return 'Standard timeline';
+        }
+
+        function checkCompliance(text) {
+            const lowerText = text.toLowerCase();
+            const flags = [];
+
+            if (lowerText.includes('personal data') || lowerText.includes('pii')) {
+                flags.push('GDPR/CCPA compliance review required');
+            }
+            if (lowerText.includes('public company') || lowerText.includes('sec')) {
+                flags.push('SEC reporting considerations');
+            }
+            if (lowerText.includes('breach') || lowerText.includes('incident')) {
+                flags.push('Incident response protocol required');
+            }
+
+            return flags;
+        }
+
+        function displayAnalysis(analysis) {
+            const analysisGrid = document.getElementById('analysis-grid');
+            const priorityClass = analysis.priority.toLowerCase();
+            
+            analysisGrid.innerHTML = `
+                <div class="analysis-item">
+                    <div class="analysis-label">Practice Area</div>
+                    <div class="analysis-value">${analysis.practiceArea}</div>
+                </div>
+                <div class="analysis-item priority-${priorityClass}">
+                    <div class="analysis-label">Priority</div>
+                    <div class="analysis-value">${analysis.priority}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-label">Urgency</div>
+                    <div class="analysis-value">${analysis.urgency}</div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-label">From</div>
+                    <div class="analysis-value">${currentEmailData.from}</div>
+                </div>
+            `;
+
+            // Display compliance alerts if any
+            const alertsContainer = document.getElementById('compliance-alerts-container');
+            if (analysis.complianceFlags.length > 0) {
+                alertsContainer.innerHTML = `
+                    <div class="compliance-alerts">
+                        <h4>⚠️ Compliance Alerts</h4>
+                        <ul>
+                            ${analysis.complianceFlags.map(flag => `<li>${flag}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                alertsContainer.innerHTML = '';
+            }
+
+            document.getElementById('analysis-section').style.display = 'block';
+        }
+
+        async function generateResponse() {
+            if (!currentEmailData) {
+                await getCurrentEmailData();
+            }
+
+            if (!currentEmailData) {
+                updateStatus('Please select an email first', 'warning');
+                return;
+            }
+
+            showLoading();
+            updateStatus('Generating AI response...', 'info');
+
+            try {
+                // Simulate AI response generation
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                const template = document.getElementById('response-template').value;
+                const response = generateLegalResponse(currentEmailData, template);
+                
+                displayGeneratedResponse(response);
+                updateStatus('Response generated successfully', 'success');
+            } catch (error) {
+                updateStatus('Error generating response: ' + error.message, 'warning');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function generateDetailedResponse() {
+            if (!currentEmailData) {
+                await getCurrentEmailData();
+            }
+
+            if (!currentEmailData) {
+                updateStatus('Please select an email first', 'warning');
+                return;
+            }
+
+            showLoading();
+            updateStatus('Generating detailed response...', 'info');
+
+            try {
+                // Simulate AI response generation with custom instructions
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                const template = document.getElementById('response-template').value;
+                const customInstructions = document.getElementById('custom-instructions').value;
+                const response = generateLegalResponse(currentEmailData, template, customInstructions);
+                
+                displayGeneratedResponse(response);
+                updateStatus('Detailed response generated', 'success');
+            } catch (error) {
+                updateStatus('Error generating response: ' + error.message, 'warning');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function generateLegalResponse(emailData, template, customInstructions = '') {
+            const isUrgent = emailData.subject.toLowerCase().includes('urgent') || 
+                           emailData.body.toLowerCase().includes('urgent') ||
+                           emailData.body.toLowerCase().includes('asap');
+
+            const practiceArea = determinePracticeArea(emailData.subject + ' ' + emailData.body);
+            const customNote = customInstructions ? `\n\nPer your specific instructions: ${customInstructions}` : '';
+
+            let response = '';
+
+            switch (template) {
+                case 'urgent':
+                    response = `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your urgent communication regarding ${emailData.subject}.
+
+I understand the time-sensitive nature of this issue and will prioritize it accordingly. Based on my initial review, this appears to involve ${practiceArea.toLowerCase()} considerations that require immediate attention.${customNote}
+
+I will provide you with:
+• An initial assessment within 2 hours
+• A comprehensive analysis by end of business today
+• Recommended immediate action steps
+
+Please do not hesitate to call me directly if you need to discuss any aspect of this matter before my written response.
+
+IMPORTANT: This communication is subject to attorney-client privilege and should be treated as confidential.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]`;
+                    break;
+
+                case 'contract':
+                    response = `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your email regarding the contract matter: ${emailData.subject}.
+
+I will conduct a thorough review of the contract documents and terms you've provided. My analysis will include:${customNote}
+
+• Review of key terms and conditions
+• Identification of potential legal risks and liabilities
+• Assessment of compliance with applicable laws
+• Recommendations for favorable modifications
+• Risk mitigation strategies
+
+Expected completion: 3-5 business days
+
+I will flag any critical issues that require immediate attention. Please provide any additional context or specific concerns you'd like me to focus on during my review.
+
+This communication is subject to attorney-client privilege.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]`;
+                    break;
+
+                case 'compliance':
+                    response = `Dear ${emailData.from.split('@')[0]},
+
+Thank you for bringing this compliance matter to my attention: ${emailData.subject}.
+
+I will conduct a comprehensive compliance assessment addressing:${customNote}
+
+• Applicable regulatory requirements and standards
+• Current compliance posture and gap analysis
+• Risk assessment and potential exposures
+• Remediation recommendations and implementation timeline
+• Ongoing monitoring and maintenance requirements
+
+This matter will be handled with the utmost confidentiality and urgency appropriate for compliance issues.
+
+Expected initial assessment: 2-3 business days
+Detailed compliance plan: 5-7 business days
+
+Please feel free to provide any additional documentation or context that may assist in this review.
+
+This communication is subject to attorney-client privilege.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]`;
+                    break;
+
+                case 'confidential':
+                    response = `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your confidential communication regarding ${emailData.subject}.
+
+I acknowledge the sensitive nature of this matter and will handle it with appropriate discretion. My review will address:${customNote}
+
+• Legal implications and potential risks
+• Strategic considerations and options
+• Confidentiality and privilege protections
+• Recommended next steps and timeline
+
+All materials and communications regarding this matter will be maintained under strict confidentiality and attorney-client privilege.
+
+I will contact you within 24 hours to discuss the appropriate approach and timeline for this sensitive matter.
+
+CONFIDENTIAL AND PRIVILEGED: This communication contains confidential attorney-client privileged information.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]`;
+                    break;
+
+                default: // standard
+                    response = `Dear ${emailData.from.split('@')[0]},
+
+Thank you for your email regarding ${emailData.subject}.
+
+I will review the details you've provided and conduct a thorough analysis of the ${practiceArea.toLowerCase()} issues involved.${customNote}
+
+My review will include:
+• Analysis of the legal implications and potential risks
+• Research of applicable laws and regulations  
+• Recommended course of action and next steps
+• Timeline for implementation
+
+Expected delivery: 3-5 business days
+
+I will contact you immediately if I identify any issues requiring urgent attention. Please feel free to reach out if you have any questions or additional information to provide.
+
+This communication is subject to attorney-client privilege.
+
+Best regards,
+[Your Name]
+[Title]
+[Contact Information]`;
+            }
+
+            return response + `\n\n---\nCONFIDENTIALITY NOTICE: This email and any attachments contain confidential and privileged information. If you are not the intended recipient, please notify the sender immediately and delete this email.`;
+        }
+
+        function displayGeneratedResponse(response) {
+            generatedResponseText = response;
+            const responseElement = document.getElementById('generated-response');
+            responseElement.textContent = response;
+            responseElement.style.display = 'block';
+            
+            document.getElementById('response-actions').style.display = 'block';
+        }
+
+        async function insertResponse() {
+            if (!generatedResponseText) {
+                updateStatus('No response to insert', 'warning');
+                return;
+            }
+
+            try {
+                // Insert the response into the current email being composed
+                Office.context.mailbox.item.body.setAsync(
+                    generatedResponseText,
+                    { coercionType: Office.CoercionType.Text },
+                    (result) => {
+                        if (result.status === Office.AsyncResultStatus.Succeeded) {
+                            updateStatus('Response inserted into email', 'success');
+                        } else {
+                            updateStatus('Error inserting response', 'warning');
+                        }
+                    }
+                );
+            } catch (error) {
+                updateStatus('Error inserting response: ' + error.message, 'warning');
+            }
+        }
+
+        function copyResponse() {
+            if (!generatedResponseText) {
+                updateStatus('No response to copy', 'warning');
+                return;
+            }
+
+            // Create a temporary textarea to copy the text
+            const textarea = document.createElement('textarea');
+            textarea.value = generatedResponseText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                updateStatus('Response copied to clipboard', 'success');
+            } catch (error) {
+                updateStatus('Error copying to clipboard', 'warning');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        async function extractTasks() {
+            if (!currentEmailData) {
+                await getCurrentEmailData();
+            }
+
+            if (!currentEmailData) {
+                updateStatus('Please select an email first', 'warning');
+                return;
+            }
+
+            showLoading();
+            updateStatus('Extracting tasks from email...', 'info');
+
+            try {
+                // Simulate AI task extraction
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const tasks = extractActionItems(currentEmailData.subject + ' ' + currentEmailData.body);
+                displayTasks(tasks);
+                updateStatus('Tasks extracted successfully', 'success');
+            } catch (error) {
+                updateStatus('Error extracting tasks: ' + error.message, 'warning');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function extractActionItems(text) {
+            const lowerText = text.toLowerCase();
+            const tasks = [];
+
+            if (lowerText.includes('contract') || lowerText.includes('agreement')) {
+                tasks.push('Review contract terms and conditions');
+                tasks.push('Identify potential legal risks and liabilities');
+                tasks.push('Negotiate favorable terms if needed');
+                tasks.push('Prepare contract summary and recommendations');
+            }
+
+            if (lowerText.includes('compliance') || lowerText.includes('regulation')) {
+                tasks.push('Research applicable regulatory requirements');
+                tasks.push('Conduct compliance gap analysis');
+                tasks.push('Develop compliance implementation plan');
+                tasks.push('Schedule compliance training if needed');
+            }
+
+            if (lowerText.includes('deadline') || lowerText.includes('due')) {
+                tasks.push('Set calendar reminders for all critical deadlines');
+                tasks.push('Prioritize tasks based on urgency');
+                tasks.push('Coordinate with client on timeline expectations');
+                tasks.push('Monitor progress and provide status updates');
+            }
+
+            if (lowerText.includes('meeting') || lowerText.includes('call')) {
+                tasks.push('Schedule follow-up meeting with client');
+                tasks.push('Prepare agenda for discussion');
+                tasks.push('Gather relevant documents and materials');
+                tasks.push('Send calendar invitation and meeting materials');
+            }
+
+            if (lowerText.includes('research') || lowerText.includes('analysis')) {
+                tasks.push('Conduct legal research on relevant statutes');
+                tasks.push('Review applicable case law and precedents');
+                tasks.push('Prepare legal memorandum with findings');
+                tasks.push('Identify potential legal strategies');
+            }
+
+            if (tasks.length === 0) {
+                tasks.push('Conduct initial legal research');
+                tasks.push('Analyze facts and applicable law');
+                tasks.push('Prepare preliminary assessment');
+                tasks.push('Schedule client consultation');
+                tasks.push('Document review and analysis');
+            }
+
+            return tasks;
+        }
+
+        function displayTasks(tasks) {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = tasks.map(task => `<li class="task-item">${task}</li>`).join('');
+            document.getElementById('tasks-section').style.display = 'block';
+        }
+
+        // Functions called by ribbon buttons
+        window.quickAnalyze = analyzeCurrentEmail;
+        window.generateResponse = generateResponse;
+        window.insertTemplate = () => {
+            // This would show a template selector
+            updateStatus('Template insertion feature', 'info');
+        };
+    </script>
+</body>
+</html>
